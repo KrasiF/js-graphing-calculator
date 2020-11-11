@@ -228,7 +228,7 @@ function drawField(){
     drawAllFunctions();
 }
 
-//functions functions
+//former function creator
 
 function createArbitraryFunction(grad,...args){
     return function(x){
@@ -248,7 +248,182 @@ function createArbitraryFunction(grad,...args){
 }
 
 
+
+/////////////////////////////////////////
+//input function handlers
+////////////////////////////////////////
+
+
+
+
+const precedences = {
+    '+': 2,
+    '-': 2,
+    '/': 3,
+    '*': 3,
+    '^': 4
+};
+
+const legalCharacters = new Set([
+    '+','-','/','*','^','(',')'
+]);
+
+const openParenthesisCharacters = new Set([
+    '('
+]);
+
+const operatorFunctions = {
+    '+': (a,b) => a + b,
+    '-': (a,b) => a - b,
+    '/': (a,b) => a / b,
+    '*': (a,b) => a * b,
+    '^': (a,b) => a ** b
+};
+
+const operatorArguments = {
+    '+': 2,
+    '-': 2,
+    '/': 2,
+    '*': 2,
+    '^': 2
+};
+
+function createReversePolishNotation(equationParts){
+    const equationLength = equationParts.length;
+    var output = [];
+    var stack = [];
+
+    for(let i = 0; i < equationLength; i++){
+        let nextCharacter = equationParts.shift();
+        let numberCheck = isCharacterNumber(nextCharacter);
+        let variableCheck = isCharacterVariable(nextCharacter);
+        if(numberCheck || variableCheck){
+            if(numberCheck){
+                nextCharacter = Number(nextCharacter);
+            }
+            output.push(nextCharacter);            
+        }
+        else if(isCharacterLegal(nextCharacter)){
+            if(nextCharacter == ')'){
+                popUntilOpeningParenthesis(stack,output);
+            }
+            else if(isCharacterParenthesis(nextCharacter)){
+                stack.push(nextCharacter);
+            }
+            else if(hasLowerOrEqualPrecedence(nextCharacter,stack)){
+                popUntilSameOrLowerPrecendence(nextCharacter,stack,output);
+            }
+            else{                
+                stack.push(nextCharacter);
+            }
+        }
+    }
+
+    emptyStackAtTheEnd(stack,output);
+
+    return output;
+}
+
+function isCharacterLegal(char){
+    return legalCharacters.has(char);
+}
+
+function isCharacterNumber(char){
+    return !isNaN(char);
+}
+
+function isCharacterVariable(char){
+    return char === 'x';
+}
+
+function isCharacterParenthesis(char){
+    return openParenthesisCharacters.has(char);
+}
+
+function popUntilOpeningParenthesis(stack,output){
+    var char = stack.pop();
+    while(char != '(' && stack.length > 0){
+        output.push(char);
+        char = stack.pop();
+    }
+}
+
+function hasLowerOrEqualPrecedence(a,stack){
+    if(stack.length == 0){
+        return false;
+    }
+    else if(openParenthesisCharacters.has(stack[stack.length-1])){
+        return false;
+    }
+    else{
+        return precedences[a] <= precedences[stack[stack.length-1]];
+    }
+}
+
+function popUntilSameOrLowerPrecendence(char,stack,output){
+    while(stack.length > 0 && (hasLowerOrEqualPrecedence(char,stack) || precedences[char] == precedences[stack[stack.length-1]] )){
+        output.push(stack.pop());
+    }
+    stack.push(char);
+}
+
+function emptyStackAtTheEnd(stack,output){
+    var stackTotalLength = stack.length;
+    for(let i = 0; i < stackTotalLength; i++){
+        output.push(stack.pop());
+    }
+}
+
+function solvePostfixForX(inputPostfixArray,xValue){
+    var postfixArray = [...inputPostfixArray];
+    while(postfixArray.includes('x')){
+        postfixArray.splice(postfixArray.indexOf('x'),1,xValue);
+    };
+    return solvePostfix(postfixArray);
+}
+
+function solvePostfix(inputPostfixArray){
+    var postfixArray = [...inputPostfixArray];
+    for(let i = 0; i < postfixArray.length; i++){
+        var currPart = postfixArray[i];
+        if(currPart in operatorFunctions){
+            useOperator(postfixArray,currPart,i);
+            i -= operatorArguments[currPart];
+        }
+    }
+    if(postfixArray.length > 1){
+        return false;
+    }
+    return postfixArray[0];
+}
+
+function useOperator(postfixArray,operator,operatorIndex){
+    var operatorArgumentsAmount = operatorArguments[operator];
+    var currOperatorArguments = [];
+
+    for(let i = operatorIndex - operatorArgumentsAmount; i < operatorIndex; i++){
+        currOperatorArguments.push(postfixArray[i]);        
+    }
+
+    var functionResult = operatorFunctions[operator](...currOperatorArguments);
+    
+    postfixArray.splice(operatorIndex - operatorArgumentsAmount, 3,functionResult);
+}
+
+function createFunctionFromPostfixWithX(inputPostfixArray){
+    return function(x){
+        postfixArray = [...inputPostfixArray];
+        return solvePostfixForX(postfixArray,x);
+    }
+};
+
+
+
+////////////////////////////
 //controller
+////////////////////////////
+
+
 
 function changeXRelativeToZoom(change){
     centerX +=change/xZoomFactor;
@@ -279,9 +454,14 @@ function reset(){
 }
 
 function btnFunctionCreate(){
-    let args = $("#finput").val().split(",")
-    $("#finput").val("");
-    functionsList.push(createArbitraryFunction(...args));
+    let postfix,func;
+    let args = $("#finput").val().split(" ");
+    console.log(args);  
+    $("#finput").val("");    
+
+    postfix = createReversePolishNotation(args);
+    func = createFunctionFromPostfixWithX(postfix);
+    functionsList.push(func);
     drawField();
 }
 

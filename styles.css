@@ -4,8 +4,9 @@ canvas {
 #canvasbody{
     text-align: center;
 }
-#instructions{
+.instructions{
     margin-top: 10px;
+    text-align: center;    
     display: inline-block;
     width: 800px;
 }
