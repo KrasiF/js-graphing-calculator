@@ -58,7 +58,7 @@ function drawFunction(func){
     
     let xa = xStart;
     let ya = func(xStart);
-    let interval = xRadius*2/(canvWidth/0.1);
+    let interval = xRadius*2/(canvWidth/0.05);
 
     for(let i = xStart + interval; i < xEnd; i+=interval){
         let xb = i;
