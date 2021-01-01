@@ -3,3 +3,5 @@
 
  You can input any function like: "( x + 2 ) / 2", "x ^ 0.5"...
  It is important to include a single space between every part of the equation.
+
+ You can also use "sin", "cos", and "sqrt". Tangens is intentionally left out.
