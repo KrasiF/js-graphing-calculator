@@ -261,11 +261,14 @@ const precedences = {
     '-': 2,
     '/': 3,
     '*': 3,
+    'sin': 3,
+    'cos': 3,
+    'sqrt': 3,
     '^': 4
 };
 
 const legalCharacters = new Set([
-    '+','-','/','*','^','(',')'
+    '+','-','/','*','^','(',')', 'sin', 'cos', 'sqrt'
 ]);
 
 const openParenthesisCharacters = new Set([
@@ -277,7 +280,10 @@ const operatorFunctions = {
     '-': (a,b) => a - b,
     '/': (a,b) => a / b,
     '*': (a,b) => a * b,
-    '^': (a,b) => a ** b
+    '^': (a,b) => a ** b,
+    'sin': (a) => Math.sin(a),
+    'cos': (a) => Math.cos(a),
+    'sqrt': (a) => Math.sqrt(a)
 };
 
 const operatorArguments = {
@@ -285,7 +291,10 @@ const operatorArguments = {
     '-': 2,
     '/': 2,
     '*': 2,
-    '^': 2
+    '^': 2,
+    'sin': 1,
+    'cos': 1,
+    'sqrt': 1
 };
 
 function createReversePolishNotation(equationParts){
